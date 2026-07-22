@@ -15,30 +15,39 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: KONTRAS WARNA & ESTETIKA ENTERPRISE ---
+# --- CSS CUSTOM: PERBAIKAN TOTAL KONTRAS WARNA TEKS & LATAR BELAKANG ---
 st.markdown("""
 <style>
-    .stApp {background-color: #0b0f19; color: #f8fafc;}
-    .main-header {font-size: 28px; font-weight: 850; color: #38bdf8; margin-bottom: 0px;}
-    .sub-header {font-size: 14px; color: #cbd5e1; margin-bottom: 20px;}
+    /* Styling utama tanpa merusak komponen bawaan Streamlit */
+    .main-header {font-size: 28px; font-weight: 850; color: #0284c7; margin-bottom: 0px;}
+    .sub-header {font-size: 14px; color: #475569; margin-bottom: 20px;}
     
     .search-card {
-        background-color: #0f172a; 
-        border: 1px solid #334155; 
+        background-color: #ffffff; 
+        border: 1px solid #cbd5e1; 
         padding: 20px; 
         border-radius: 14px; 
         margin-bottom: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         transition: 0.3s;
     }
     .search-card:hover {
-        border-color: #38bdf8;
-        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);
+        border-color: #0284c7;
+        box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.1);
     }
-    .metric-label {font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase;}
-    .graph-node {background: #1e293b; border: 1px solid #38bdf8; padding: 12px; border-radius: 10px; text-align: center; color: #38bdf8; font-weight: bold;}
+    .card-title {color: #0f172a !important; font-size: 18px; font-weight: 700; margin: 0px;}
+    .card-desc {color: #334155 !important; font-size: 14px; margin: 5px 0px;}
+    .metric-label {font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;}
     
-    p, span, label, div {color: #f8fafc !important;}
-    .stMarkdown h3, .stMarkdown h4, .stMarkdown h2 {color: #38bdf8 !important;}
+    .graph-node {
+        background: #f8fafc; 
+        border: 1px solid #0284c7; 
+        padding: 12px; 
+        border-radius: 10px; 
+        text-align: center; 
+        color: #0369a1 !important; 
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -52,7 +61,7 @@ SPECIES_DATABASE = {
         "confidence": 96.4,
         "base_size": 45.2,
         "aphia": "127023",
-        "image_url": "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=600" # Foto ikan tuna/pelagis akurat
+        "image_url": "https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=600"
     },
     "Poecilia reticulata (Reef Dweller / Pelagic)": {
         "file_3d": "guppy_fish.glb",
@@ -62,7 +71,7 @@ SPECIES_DATABASE = {
         "confidence": 91.8,
         "base_size": 8.5,
         "aphia": "276272",
-        "image_url": "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=600" # Foto ikan hias/karang akurat
+        "image_url": "https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=600"
     },
     "Diploria labyrinthiformis (Brain Coral)": {
         "file_3d": "brain_coral.glb",
@@ -72,7 +81,7 @@ SPECIES_DATABASE = {
         "confidence": 88.5,
         "base_size": 28.0,
         "aphia": "287877",
-        "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600" # Foto struktur karang akurat
+        "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600"
     },
     "Pavona cactus (Cactus Coral)": {
         "file_3d": "pavona_coral.glb",
@@ -82,7 +91,7 @@ SPECIES_DATABASE = {
         "confidence": 76.2,
         "base_size": 32.4,
         "aphia": "206512",
-        "image_url": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600" # Foto terumbu karang lembaran
+        "image_url": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=600"
     },
     "Corallium rubrum (Red Coral)": {
         "file_3d": "low_poly_red_coral.glb",
@@ -92,7 +101,7 @@ SPECIES_DATABASE = {
         "confidence": 65.0,
         "base_size": 14.1,
         "aphia": "125395",
-        "image_url": "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=600" # Foto organisme bentik laut dalam
+        "image_url": "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=600"
     }
 }
 
@@ -142,8 +151,8 @@ def render_interactive_3d(file_name):
         <head>
             <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
             <style>
-                body {{ margin: 0; background-color: #0b0f19; }}
-                model-viewer {{ width: 100%; height: 450px; background-color: #0f172a; border-radius: 12px; border: 1px solid #334155; }}
+                body {{ margin: 0; background-color: #f1f5f9; }}
+                model-viewer {{ width: 100%; height: 450px; background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; }}
             </style>
         </head>
         <body>
@@ -230,9 +239,9 @@ elif st.session_state.step == 'results':
             st.markdown(f"""
             <div class="search-card">
                 <img src="{data['image_url']}" style="width:100%; height:190px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
-                <h4 style="color:#38bdf8; margin:0px;">{key}</h4>
-                <p style="margin:5px 0px; color:#cbd5e1;"><b>Nama Umum:</b> {data['common']}</p>
-                <p style="margin:5px 0px; color:#cbd5e1;"><b>Famili:</b> {data['family']} | <b>Tingkat Kemiripan:</b> <span style="color:#22c55e; font-weight:bold;">{data['confidence']}%</span></p>
+                <p class="card-title">{key}</p>
+                <p class="card-desc"><b>Nama Umum:</b> {data['common']}</p>
+                <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Tingkat Kemiripan:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -265,17 +274,16 @@ elif st.session_state.step == 'detail':
     with col_meta:
         st.markdown("**Kalkulasi Spasial & Koreksi Parallax**")
         
-        # Kalkulasi matematis koreksi jarak kamera
         correction_factor = 1.0 + ((cam_distance - 50) * 0.003)
         adjusted_size = round(spec_info["base_size"] * correction_factor, 1)
         
         st.markdown(f"""
         <div class="search-card">
-            <span class="metric-label">Ukuran Mentah Citra:</span> <h3>{spec_info['base_size']} cm</h3>
-            <hr style="border-color:#334155; margin:10px 0px;">
-            <span class="metric-label" style="color:#38bdf8;">Ukuran Terkalibrasi (Jarak {cam_distance} cm):</span> 
-            <h2 style="color:#38bdf8; margin:0px;">{adjusted_size} cm</h2>
-            <p style="font-size:11px; color:#94a3b8; margin-top:5px;">Distorsi sudut pandang kamera berhasil dieliminasi otonom.</p>
+            <span class="metric-label">Ukuran Mentah Citra:</span> <h3 style="color:#0f172a; margin:0px;">{spec_info['base_size']} cm</h3>
+            <hr style="border-color:#cbd5e1; margin:10px 0px;">
+            <span class="metric-label" style="color:#0284c7;">Ukuran Terkalibrasi (Jarak {cam_distance} cm):</span> 
+            <h2 style="color:#0284c7; margin:0px;">{adjusted_size} cm</h2>
+            <p style="font-size:11px; color:#64748b; margin-top:5px;">Distorsi sudut pandang kamera berhasil dieliminasi otonom.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -283,23 +291,21 @@ elif st.session_state.step == 'detail':
         live_w = get_worms_live(spec_info["aphia"])
         st.markdown(f"""
         <div class="search-card">
-            <p style="margin:4px 0px;"><b>AphiaID:</b> {spec_info['aphia']}</p>
-            <p style="margin:4px 0px;"><b>Status:</b> <span style="color:#22c55e;">{live_w['Status'].upper()}</span></p>
-            <p style="margin:4px 0px;"><b>Kingdom:</b> {live_w['Kingdom']}</p>
-            <p style="margin:4px 0px;"><b>Phylum:</b> {live_w['Phylum']}</p>
-            <p style="margin:4px 0px;"><b>Class:</b> {spec_info['class']}</p>
-            <p style="margin:4px 0px;"><b>Otoritas:</b> {live_w['Authority']}</p>
+            <p class="card-desc" style="margin:4px 0px;"><b>AphiaID:</b> {spec_info['aphia']}</p>
+            <p class="card-desc" style="margin:4px 0px;"><b>Status:</b> <span style="color:#16a34a; font-weight:600;">{live_w['Status'].upper()}</span></p>
+            <p class="card-desc" style="margin:4px 0px;"><b>Kingdom:</b> {live_w['Kingdom']}</p>
+            <p class="card-desc" style="margin:4px 0px;"><b>Phylum:</b> {live_w['Phylum']}</p>
+            <p class="card-desc" style="margin:4px 0px;"><b>Class:</b> {spec_info['class']}</p>
+            <p class="card-desc" style="margin:4px 0px;"><b>Otoritas:</b> {live_w['Authority']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # FITUR KILER: Human-in-the-Loop Validation Button
         if st.button("✅ KUNCI DATA UNTUK LAPORAN PENELITIAN (.CSV)", type="primary", use_container_width=True):
             log_entry = {"Spesies": spec_key, "Ukuran_Terkalibrasi_cm": adjusted_size, "AphiaID": spec_info["aphia"], "Status": "Verified Human-in-Loop"}
             if log_entry not in st.session_state.verified_log:
                 st.session_state.verified_log.append(log_entry)
             st.success("Data berhasil dikunci dan dimasukkan ke dalam basis data rekapitulasi riset!")
 
-    # Bagian tabel rekap data yang sudah divalidasi
     if len(st.session_state.verified_log) > 0:
         st.divider()
         st.subheader("📊 Tabel Rekapitulasi Data Terverifikasi")
