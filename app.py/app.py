@@ -15,10 +15,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: PERBAIKAN TOTAL KONTRAS WARNA TEKS & LATAR BELAKANG ---
+# --- CSS CUSTOM: KONTRAS WARNA & ESTETIKA ENTERPRISE ---
 st.markdown("""
 <style>
-    /* Styling utama tanpa merusak komponen bawaan Streamlit */
     .main-header {font-size: 28px; font-weight: 850; color: #0284c7; margin-bottom: 0px;}
     .sub-header {font-size: 14px; color: #475569; margin-bottom: 20px;}
     
@@ -105,7 +104,7 @@ SPECIES_DATABASE = {
     }
 }
 
-# --- STATE MANAGEMENT ALUR NAVIGASI ---
+# --- STATE MANAGEMENT ---
 if 'step' not in st.session_state:
     st.session_state.step = 'upload'
 if 'selected_specie_key' not in st.session_state:
@@ -113,14 +112,20 @@ if 'selected_specie_key' not in st.session_state:
 if 'verified_log' not in st.session_state:
     st.session_state.verified_log = []
 
-# --- FUNGSI PENDUKUNG ---
-def enhance_underwater_image(image_bytes):
+# --- FUNGSI PENDUKUNG (OPENCV IMAGE ENHANCEMENT) ---
+def enhance_underwater_image(image_bytes, sharpen_strength=1.0):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
+    # 1. De-hazing & Color Balance via YUV Channel Equalization
     img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
     img_yuv[:,:,0] = cv2.equalizeHist(img_yuv[:,:,0])
-    img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
-    return img_output
+    img_balanced = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+    
+    # 2. Image Sharpening (Memperjelas detail tekstur karang / sisik ikan)
+    kernel = np.array([[0, -1, 0], [-1, 4 + sharpen_strength, -1], [0, -1, 0]])
+    img_sharpened = cv2.filter2D(img_balanced, -1, kernel)
+    return img_sharpened
 
 def get_worms_live(aphia_id):
     url = f"https://www.marinespecies.org/rest/AphiaRecordByAphiaID/{aphia_id}"
@@ -173,11 +178,12 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL UTAMA ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V5.0")
+    st.markdown("### 🌊 BENTHIC-AI V5.1")
     st.caption("Ecosystem Intelligence & GraphRAG")
     st.divider()
     
-    st.markdown("#### ⚙️ Parameter Kalibrasi Lapangan")
+    st.markdown("#### ⚙️ Parameter Pra-Pemrosesan Citra")
+    sharpen_val = st.slider("Intensitas Penajaman (OpenCV Sharpen):", 0.0, 3.0, 1.2, help="Memperjelas detail buram pada citra bawah air.")
     cam_distance = st.slider("Jarak Kamera ke Objek (cm):", 20, 150, 50, help="Koreksi matematis Parallax Error secara real-time.")
     
     st.divider()
@@ -185,11 +191,11 @@ with st.sidebar:
     st.success(" WoRMS Live API\n FishBase Node\n OBIS Biogeographic")
 
 # ==========================================
-# ALUR 1: UPLOAD & PENCARIAN GOOGLE-LIKE
+# ALUR 1: UPLOAD & PRE-PROCESSING (BEFORE-AFTER)
 # ==========================================
 if st.session_state.step == 'upload':
-    st.markdown('<p class="main-header">Portal Pencarian Taksonomi Bawah Air</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Unggah foto transek spesimen. Sistem GraphRAG akan mencocokkan kemiripan morfologi secara instan.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-header">Portal Pencarian & Pra-Pemrosesan Citra Bawah Air</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Unggah foto spesimen. Sistem OpenCV akan menjernihkan gambar secara otonom sebelum dicocokkan via GraphRAG.</p>', unsafe_allow_html=True)
     
     col_up1, col_up2 = st.columns([1, 1.2])
     
@@ -198,7 +204,7 @@ if st.session_state.step == 'upload':
         up_file = st.file_uploader("Pilih foto format JPG/PNG:", type=['jpg', 'jpeg', 'png'])
         
         if up_file is not None:
-            st.image(up_file, use_column_width=True, caption="Citra Raw Original dari Kamera Under-water")
+            st.success("Citra berhasil dimuat!")
             
         if st.button("🔍 CARI KANDIDAT SPESIES (GRAPH SEARCH)", type="primary", use_container_width=True):
             if up_file is not None:
@@ -210,13 +216,16 @@ if st.session_state.step == 'upload':
                 st.warning("⚠️ Silakan unggah foto sampel terlebih dahulu!")
 
     with col_up2:
-        st.subheader("🌐 Visualisasi Arsitektur GraphRAG")
-        st.caption("Peta simpul relasi cerdas yang mengeksekusi pencarian tanpa jeda birokrasi:")
-        
-        st.markdown('<div class="graph-node" style="margin-bottom:10px;">1. Input Citra & De-hazing OpenCV</div>', unsafe_allow_html=True)
-        st.markdown('<div class="graph-node" style="margin-bottom:10px;">2. Multi-Hop Graph Traversal (O(log V))</div>', unsafe_allow_html=True)
-        st.markdown('<div class="graph-node" style="margin-bottom:10px;">3. Pencocokan Taksonomi WoRMS Live API</div>', unsafe_allow_html=True)
-        st.markdown('<div class="graph-node">4. Human-in-the-Loop 3D Validation Engine</div>', unsafe_allow_html=True)
+        st.subheader("🔬 Peningkatan Kualitas Citra (Before vs After De-hazing)")
+        if up_file is not None:
+            c_raw, c_enh = st.columns(2)
+            with c_raw:
+                st.image(up_file, use_column_width=True, caption="Citra Raw (Asli Keruh)")
+            with c_enh:
+                enhanced_preview = enhance_underwater_image(up_file.getvalue(), sharpen_val)
+                st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan & Penajaman")
+        else:
+            st.info("💡 Unggah foto di sebelah kiri untuk melihat perbandingan langsung penjernihan citra menggunakan OpenCV.")
 
 # ==========================================
 # ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
