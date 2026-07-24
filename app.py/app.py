@@ -4,6 +4,7 @@ import numpy as np
 import time
 import requests
 import base64
+import os
 import pandas as pd
 import streamlit.components.v1 as components
 
@@ -29,36 +30,34 @@ st.markdown("""
     .card-title {color: #0f172a !important; font-size: 18px; font-weight: 700; margin: 0px;}
     .card-desc {color: #334155 !important; font-size: 14px; margin: 5px 0px;}
     .metric-label {font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;}
-    .terminal-box {background-color: #0f172a; color: #10b981; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px;}
+    .image-placeholder {
+        width: 100%; height: 190px; background-color: #e2e8f0; border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 13px; font-weight: 500; margin-bottom: 12px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE SPESIES (GAMBAR WIKIPEDIA ILMIAH ASLI) ---
+# --- DATABASE SPESIES (5 BIOTA LENGKAP) ---
 SPECIES_DATABASE = {
     "Thunnus albacares (Yellowfin Tuna)": {
         "file_3d": "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
-        "confidence": 96.4, "base_size": 45.2, "aphia": "127023",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Yellowfin_tuna_1.jpg"
+        "confidence": 96.4, "base_size": 45.2, "aphia": "127023", "local_img": "tuna.jpg"
     },
     "Amphiprion ocellaris (Clownfish)": {
         "file_3d": "guppy_fish.glb", "common": "Ikan Badut / Anemon", "family": "Pomacentridae", "class": "Actinopterygii",
-        "confidence": 94.8, "base_size": 8.5, "aphia": "278402",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Amphiprion_ocellaris_%28Clown_anemonefish%29_by_Nick_Hobgood.jpg"
+        "confidence": 94.8, "base_size": 8.5, "aphia": "278402", "local_img": "clownfish.jpg"
     },
     "Diploria labyrinthiformis (Brain Coral)": {
         "file_3d": "brain_coral.glb", "common": "Karang Otak Labirin", "family": "Merulinidae", "class": "Anthozoa",
-        "confidence": 88.5, "base_size": 28.0, "aphia": "287877",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Diploria_labyrinthiformis.jpg"
+        "confidence": 88.5, "base_size": 28.0, "aphia": "287877", "local_img": "brain_coral.jpg"
     },
     "Pavona clavus (Column Coral)": {
         "file_3d": "pavona_coral.glb", "common": "Karang Kolom Pavona", "family": "Agariciidae", "class": "Anthozoa",
-        "confidence": 76.2, "base_size": 32.4, "aphia": "206512",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Pavona_clavus.jpg"
+        "confidence": 76.2, "base_size": 32.4, "aphia": "206512", "local_img": "pavona_coral.jpg"
     },
     "Corallium rubrum (Red Coral)": {
         "file_3d": "low_poly_red_coral.glb", "common": "Karang Merah Mediterania", "family": "Coralliidae", "class": "Anthozoa",
-        "confidence": 85.0, "base_size": 14.1, "aphia": "125395",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Corallium_rubrum_Catalunya.jpg"
+        "confidence": 85.0, "base_size": 14.1, "aphia": "125395", "local_img": "red_coral.jpg"
     }
 }
 
@@ -68,7 +67,30 @@ if 'selected_specie_key' not in st.session_state: st.session_state.selected_spec
 if 'verified_log' not in st.session_state: st.session_state.verified_log = []
 if 'enhanced_img_cache' not in st.session_state: st.session_state.enhanced_img_cache = None
 
-# --- FUNGSI PENDUKUNG OPENCV & API ---
+# --- FUNGSI RENDERING GAMBAR LOKAL AMAN ---
+def render_local_image_html(file_name):
+    path = f"assets/{file_name}"
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as image_file:
+                encoded = base64.b64encode(image_file.read()).decode()
+            return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; height:190px; object-fit:cover; border-radius:10px; margin-bottom:12px;">'
+        except:
+            pass
+    return f'<div class="image-placeholder">📷 Kategori Aset: {file_name}</div>'
+
+def render_local_image_large(file_name):
+    path = f"assets/{file_name}"
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as image_file:
+                encoded = base64.b64encode(image_file.read()).decode()
+            return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; max-height:300px; object-fit:contain; border-radius:12px; border: 1px solid #cbd5e1; margin-bottom:15px;">'
+        except:
+            pass
+    return '<div class="image-placeholder">Visualisasi Spesimen Taksonomi Utama</div>'
+
+# --- FUNGSI PENDUKUNG LAINNYA ---
 def validate_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -107,22 +129,22 @@ def render_interactive_3d(file_name):
         components.html(html_code, height=470)
     except: st.error(f"File 3D '{file_name}' tidak ditemukan di folder 'assets'.")
 
-# --- SIDEBAR KONTROL UTAMA ---
+# --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.1")
-    st.caption("Ecological AI & WoRMS Live Engine")
+    st.markdown("### 🌊 BENTHIC-AI V6.3")
+    st.caption("Local Repository Integrity Enabled")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Side-by-Side Workspace Enabled")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 Local Asset Engine Active")
 
 # ==========================================
 # ALUR 1: UPLOAD & PRE-PROCESSING
 # ==========================================
 if st.session_state.step == 'upload':
     st.markdown('<p class="main-header">Sistem Identifikasi Taksonomi Bawah Air</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Unggah citra lapangan. Sistem akan memvalidasi spektrum air laut, menjernihkan citra, dan menelusuri GraphRAG.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Unggah citra lapangan untuk ekstraksi fitur otomatis dan penelusuran GraphRAG.</p>', unsafe_allow_html=True)
     
     col_up1, col_up2 = st.columns([1, 1.2])
     
@@ -139,7 +161,6 @@ if st.session_state.step == 'upload':
                 st.image(up_file, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
                 
                 if st.button("🚀 EKSTRAKSI FITUR & PENCARIAN (GRAPHRAG)", type="primary", use_container_width=True):
-                    # Cache citra yang dijernihkan biar bisa dipanggil lagi di halaman detail
                     st.session_state.enhanced_img_cache = enhance_underwater_image(up_file.getvalue())
                     st.session_state.step = 'results'
                     st.rerun()
@@ -154,7 +175,7 @@ if st.session_state.step == 'upload':
                     st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
             except: pass
         else:
-            st.info("💡 Unggah foto lapangan untuk mengaktifkan modul kalibrasi visi komputer.")
+            st.info("💡 Sistem siap memproses data.")
 
 # ==========================================
 # ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
@@ -168,9 +189,10 @@ elif st.session_state.step == 'results':
     idx = 0
     for key, data in SPECIES_DATABASE.items():
         with cols[idx % 2]:
+            img_html = render_local_image_html(data["local_img"])
             st.markdown(f"""
             <div class="search-card">
-                <img src="{data['image_url']}" style="width:100%; height:190px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
+                {img_html}
                 <p class="card-title">{key}</p>
                 <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
             </div>
@@ -182,7 +204,7 @@ elif st.session_state.step == 'results':
         idx += 1
 
 # ==========================================
-# ALUR 3: INTERACTIVE VALIDATION WORKSPACE (SIDE-BY-SIDE)
+# ALUR 3: INTERACTIVE VALIDATION WORKSPACE
 # ==========================================
 elif st.session_state.step == 'detail':
     if st.button("⬅️ Kembali ke Daftar Hasil"): st.session_state.step = 'results'; st.rerun()
@@ -191,28 +213,28 @@ elif st.session_state.step == 'detail':
     spec_info = SPECIES_DATABASE[spec_key]
     
     st.markdown(f'<p class="main-header">Workspace Validasi Spesies Kriptik: {spec_key}</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Bandingkan detail morfologi antara citra lapangan ter-koreksi (kiri) dengan replika visual taksonomi 3D (kanan).</p>', unsafe_allow_html=True)
     
-    # PERUBAHAN UTAMA: Membagi ruang komparasi seimbang menjadi 2 Kolom Besar
     workspace_col_left, workspace_col_right = st.columns([1, 1])
     
     with workspace_col_left:
-        st.subheader("📸 Citra Lapangan Terkalibrasi (OpenCV)")
+        st.subheader("📸 Citra Lapangan & Visual Target")
+        
         if st.session_state.enhanced_img_cache is not None:
-            st.image(st.session_state.enhanced_img_cache, use_column_width=True, caption="Citra Sampel Asli Peneliti (Telah Mengalami De-hazing)")
-        else:
-            st.warning("Citra sampel tidak ditemukan.")
+            st.image(st.session_state.enhanced_img_cache, use_column_width=True, caption="Citra Sampel Lapangan (De-hazed)")
+        
+        st.markdown("**Referensi Taksonomi Database:**")
+        ref_img_html = render_local_image_large(spec_info["local_img"])
+        st.markdown(ref_img_html, unsafe_allow_html=True)
             
         st.markdown("**Data Klasifikasi WoRMS API**")
-        with st.spinner("Menyinkronkan data taksonomi global..."):
-            live_w = get_worms_live(spec_info["aphia"])
-            st.markdown(f"""
-            <div class="search-card">
-                <p class="card-desc"><b>AphiaID:</b> {spec_info['aphia']} | <b>Status:</b> <span style="color:#16a34a; font-weight:600;">{live_w['Status'].upper()}</span></p>
-                <p class="card-desc"><b>Phylum:</b> {live_w['Phylum']} | <b>Class:</b> {spec_info['class']}</p>
-                <p class="card-desc"><b>Authority:</b> {live_w['Authority']}</p>
-            </div>
-            """, unsafe_allow_html=True)
+        live_w = get_worms_live(spec_info["aphia"])
+        st.markdown(f"""
+        <div class="search-card">
+            <p class="card-desc"><b>AphiaID:</b> {spec_info['aphia']} | <b>Status:</b> <span style="color:#16a34a; font-weight:600;">{live_w['Status'].upper()}</span></p>
+            <p class="card-desc"><b>Phylum:</b> {live_w['Phylum']} | <b>Class:</b> {spec_info['class']}</p>
+            <p class="card-desc"><b>Authority:</b> {live_w['Authority']}</p>
+        </div>
+        """, unsafe_allow_html=True)
         
     with workspace_col_right:
         st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
@@ -234,11 +256,9 @@ elif st.session_state.step == 'detail':
         if st.button("✅ KUNCI VALIDASI & CATAT KE LAPORAN (.CSV)", type="primary", use_container_width=True):
             log_entry = {"Spesies": spec_key, "Ukuran_Asli": spec_info["base_size"], "Ukuran_Koreksi": adjusted_size, "AphiaID": spec_info["aphia"], "Validasi": "Human-in-the-Loop Confirmed"}
             if log_entry not in st.session_state.verified_log: st.session_state.verified_log.append(log_entry)
-            st.success("Tinjauan sukses! Spesies resmi divalidasi peneliti.")
+            st.success("Tinjauan sukses!")
 
     if len(st.session_state.verified_log) > 0:
         st.divider()
-        st.subheader("📊 Hasil Rekapitulasi Validasi Pakar")
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
-        st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
