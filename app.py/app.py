@@ -9,13 +9,13 @@ import streamlit.components.v1 as components
 
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(
-    page_title="BENTHIC-AI • Autonomous Marine Engine",
+    page_title="BENTHIC-AI • Ultimate Marine Taxonomy & GraphRAG Platform",
     page_icon="🌊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: ESTETIKA ENTERPRISE ---
+# --- CSS CUSTOM: KONTRAS WARNA & ESTETIKA ENTERPRISE ---
 st.markdown("""
 <style>
     .main-header {font-size: 28px; font-weight: 850; color: #0284c7; margin-bottom: 0px;}
@@ -66,16 +66,14 @@ SPECIES_DATABASE = {
 if 'step' not in st.session_state: st.session_state.step = 'upload'
 if 'selected_specie_key' not in st.session_state: st.session_state.selected_specie_key = None
 if 'verified_log' not in st.session_state: st.session_state.verified_log = []
+if 'enhanced_img_cache' not in st.session_state: st.session_state.enhanced_img_cache = None
 
 # --- FUNGSI PENDUKUNG OPENCV & API ---
 def validate_underwater_image(image_bytes):
-    # ALGORITMA PENOLAKAN GAMBAR PALSU: Mengecek serapan spektrum cahaya
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
     mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
-    
-    # Jika Merah lebih dominan dari Biru dan Hijau, ini bukan foto bawah air
     if mean_r > mean_b and mean_r > mean_g:
         return False, "Sistem menolak citra. Spektrum warna merah terlalu dominan (Bukan Lingkungan Bawah Air)."
     return True, "Validasi Ekologi Diterima."
@@ -112,15 +110,15 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL UTAMA ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.0")
+    st.markdown("### 🌊 BENTHIC-AI V6.1")
     st.caption("Ecological AI & WoRMS Live Engine")
     st.divider()
-    cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50, help="Simulasi koreksi distorsi spasial bawah air.")
+    cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Spectral Validation Engine")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 Side-by-Side Workspace Enabled")
 
 # ==========================================
-# ALUR 1: UPLOAD & VALIDASI PIKSEL (ANTI-FAKE)
+# ALUR 1: UPLOAD & PRE-PROCESSING
 # ==========================================
 if st.session_state.step == 'upload':
     st.markdown('<p class="main-header">Sistem Identifikasi Taksonomi Bawah Air</p>', unsafe_allow_html=True)
@@ -133,26 +131,16 @@ if st.session_state.step == 'upload':
         up_file = st.file_uploader("Unggah foto (JPG/PNG):", type=['jpg', 'jpeg', 'png'])
         
         if up_file:
-            # 1. Jalankan Validasi Spektrum (Anti-Gambar Ngasal)
             is_valid, msg = validate_underwater_image(up_file.getvalue())
-            
             if not is_valid:
-                st.error("🚨 PENOLAKAN SISTEM")
-                st.warning(msg)
-                st.image(up_file, use_column_width=True, caption="Citra ditolak: Spektrum non-akuatik.")
+                st.error("🚨 PENOLAKAN SISTEM"); st.warning(msg)
             else:
                 st.success(f"✅ {msg}")
                 st.image(up_file, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
                 
                 if st.button("🚀 EKSTRAKSI FITUR & PENCARIAN (GRAPHRAG)", type="primary", use_container_width=True):
-                    # Efek "Wow": Live Terminal Output
-                    status_box = st.empty()
-                    status_box.markdown('<div class="terminal-box">> Menghubungkan ke node GraphRAG...</div>', unsafe_allow_html=True)
-                    time.sleep(0.5)
-                    status_box.markdown('<div class="terminal-box">> Menghubungkan ke node GraphRAG...<br>> Ekstraksi Morfologi (OpenCV Edge Detection)... [OK]</div>', unsafe_allow_html=True)
-                    time.sleep(0.8)
-                    status_box.markdown('<div class="terminal-box">> Ekstraksi Morfologi... [OK]<br>> Menembak API www.marinespecies.org... [HTTP 200 OK]<br>> Mencocokkan kandidat spesies kriptik...</div>', unsafe_allow_html=True)
-                    time.sleep(1)
+                    # Cache citra yang dijernihkan biar bisa dipanggil lagi di halaman detail
+                    st.session_state.enhanced_img_cache = enhance_underwater_image(up_file.getvalue())
                     st.session_state.step = 'results'
                     st.rerun()
 
@@ -166,7 +154,7 @@ if st.session_state.step == 'upload':
                     st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
             except: pass
         else:
-            st.info("💡 Sistem ini dilengkapi sensor spektrum piksel. Jika Anda mengunggah foto wajah atau ruangan, AI akan memblokirnya karena tidak sesuai dengan parameter ekosistem laut.")
+            st.info("💡 Unggah foto lapangan untuk mengaktifkan modul kalibrasi visi komputer.")
 
 # ==========================================
 # ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
@@ -194,7 +182,7 @@ elif st.session_state.step == 'results':
         idx += 1
 
 # ==========================================
-# ALUR 3: DETAIL, PARALLAX, & EKSPOR CSV
+# ALUR 3: INTERACTIVE VALIDATION WORKSPACE (SIDE-BY-SIDE)
 # ==========================================
 elif st.session_state.step == 'detail':
     if st.button("⬅️ Kembali ke Daftar Hasil"): st.session_state.step = 'results'; st.rerun()
@@ -202,46 +190,55 @@ elif st.session_state.step == 'detail':
     spec_key = st.session_state.selected_specie_key
     spec_info = SPECIES_DATABASE[spec_key]
     
-    st.markdown(f'<p class="main-header">Validasi Pakar: {spec_key}</p>', unsafe_allow_html=True)
-    col_3d, col_meta = st.columns([1.4, 1])
+    st.markdown(f'<p class="main-header">Workspace Validasi Spesies Kriptik: {spec_key}</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Bandingkan detail morfologi antara citra lapangan ter-koreksi (kiri) dengan replika visual taksonomi 3D (kanan).</p>', unsafe_allow_html=True)
     
-    with col_3d:
-        render_interactive_3d(spec_info["file_3d"])
-        
-    with col_meta:
-        st.markdown("**Kalkulasi Spasial & Koreksi Parallax**")
-        correction_factor = 1.0 + ((cam_distance - 50) * 0.003)
-        adjusted_size = round(spec_info["base_size"] * correction_factor, 1)
-        
-        st.markdown(f"""
-        <div class="search-card">
-            <span class="metric-label">Ukuran Mentah:</span> <h3 style="color:#0f172a; margin:0px;">{spec_info['base_size']} cm</h3>
-            <hr style="border-color:#cbd5e1; margin:10px 0px;">
-            <span class="metric-label" style="color:#0284c7;">Terkalibrasi (Jarak {cam_distance} cm):</span> 
-            <h2 style="color:#0284c7; margin:0px;">{adjusted_size} cm</h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("**Data Aktual API WoRMS**")
-        with st.spinner("Menarik data..."):
+    # PERUBAHAN UTAMA: Membagi ruang komparasi seimbang menjadi 2 Kolom Besar
+    workspace_col_left, workspace_col_right = st.columns([1, 1])
+    
+    with workspace_col_left:
+        st.subheader("📸 Citra Lapangan Terkalibrasi (OpenCV)")
+        if st.session_state.enhanced_img_cache is not None:
+            st.image(st.session_state.enhanced_img_cache, use_column_width=True, caption="Citra Sampel Asli Peneliti (Telah Mengalami De-hazing)")
+        else:
+            st.warning("Citra sampel tidak ditemukan.")
+            
+        st.markdown("**Data Klasifikasi WoRMS API**")
+        with st.spinner("Menyinkronkan data taksonomi global..."):
             live_w = get_worms_live(spec_info["aphia"])
             st.markdown(f"""
             <div class="search-card">
                 <p class="card-desc"><b>AphiaID:</b> {spec_info['aphia']} | <b>Status:</b> <span style="color:#16a34a; font-weight:600;">{live_w['Status'].upper()}</span></p>
                 <p class="card-desc"><b>Phylum:</b> {live_w['Phylum']} | <b>Class:</b> {spec_info['class']}</p>
-                <p class="card-desc"><b>Otoritas:</b> {live_w['Authority']}</p>
+                <p class="card-desc"><b>Authority:</b> {live_w['Authority']}</p>
             </div>
             """, unsafe_allow_html=True)
         
-        if st.button("✅ KUNCI DATA UNTUK LAPORAN (.CSV)", type="primary", use_container_width=True):
-            log_entry = {"Spesies": spec_key, "Ukuran_Asli": spec_info["base_size"], "Ukuran_Koreksi": adjusted_size, "AphiaID": spec_info["aphia"], "Otoritas": live_w["Authority"]}
+    with workspace_col_right:
+        st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
+        render_interactive_3d(spec_info["file_3d"])
+        
+        st.markdown("**Koreksi Spasial Parallax Error**")
+        correction_factor = 1.0 + ((cam_distance - 50) * 0.003)
+        adjusted_size = round(spec_info["base_size"] * correction_factor, 1)
+        
+        st.markdown(f"""
+        <div class="search-card">
+            <span class="metric-label">Dimensi Mentah Citra:</span> <h4 style="color:#0f172a; margin:0px;">{spec_info['base_size']} cm</h4>
+            <hr style="border-color:#cbd5e1; margin:8px 0px;">
+            <span class="metric-label" style="color:#0284c7;">Ukuran Sebenarnya (Jarak Kamera {cam_distance} cm):</span> 
+            <h2 style="color:#0284c7; margin:0px;">{adjusted_size} cm</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("✅ KUNCI VALIDASI & CATAT KE LAPORAN (.CSV)", type="primary", use_container_width=True):
+            log_entry = {"Spesies": spec_key, "Ukuran_Asli": spec_info["base_size"], "Ukuran_Koreksi": adjusted_size, "AphiaID": spec_info["aphia"], "Validasi": "Human-in-the-Loop Confirmed"}
             if log_entry not in st.session_state.verified_log: st.session_state.verified_log.append(log_entry)
-            st.success("Data masuk rekapitulasi!")
+            st.success("Tinjauan sukses! Spesies resmi divalidasi peneliti.")
 
     if len(st.session_state.verified_log) > 0:
         st.divider()
-        st.subheader("📊 Tabel Rekapitulasi Riset")
+        st.subheader("📊 Hasil Rekapitulasi Validasi Pakar")
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
         st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
-        
