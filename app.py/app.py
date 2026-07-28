@@ -16,24 +16,53 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: KONTRAS WARNA & ESTETIKA ENTERPRISE ---
+# --- CSS CUSTOM: SLEEK NEON CYBER AESTHETICS ---
 st.markdown("""
 <style>
-    .main-header {font-size: 28px; font-weight: 850; color: #0284c7; margin-bottom: 0px;}
-    .sub-header {font-size: 14px; color: #475569; margin-bottom: 20px;}
+    /* Global Background (Super Gelap ala IDE/Terminal) */
+    .stApp {background-color: #09090b; color: #f8fafc;}
+    
+    /* Tipografi Futuristik */
+    .main-header {font-size: 32px; font-weight: 900; background: -webkit-linear-gradient(45deg, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px;}
+    .sub-header {font-size: 14px; color: #94a3b8; margin-bottom: 20px;}
+    
+    /* Sleek Search Card dengan Neon Hover Effect */
     .search-card {
-        background-color: #ffffff; border: 1px solid #cbd5e1; padding: 20px; 
-        border-radius: 14px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: 0.3s;
+        background-color: #18181b; 
+        border: 1px solid #27272a; 
+        padding: 20px; 
+        border-radius: 16px; 
+        margin-bottom: 15px;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .search-card:hover {border-color: #0284c7; box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.1);}
-    .card-title {color: #0f172a !important; font-size: 18px; font-weight: 700; margin: 0px;}
-    .card-desc {color: #334155 !important; font-size: 14px; margin: 5px 0px;}
-    .metric-label {font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;}
+    .search-card:hover {
+        border-color: #06b6d4;
+        transform: translateY(-5px);
+        /* Efek cahaya neon cyan seperti di referensi gambar */
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.2), 0 0 40px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Elemen Teks dalam Card */
+    .card-title {color: #e2e8f0 !important; font-size: 19px; font-weight: 800; margin: 0px; letter-spacing: 0.5px;}
+    .card-desc {color: #a1a1aa !important; font-size: 14px; margin: 5px 0px;}
+    .metric-label {font-size: 11px; color: #71717a; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
+    
+    /* Placeholder Gambar (Jika gambar lokal gagal) */
     .image-placeholder {
-        width: 100%; height: 190px; background-color: #e2e8f0; border-radius: 10px; 
-        display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 13px; font-weight: 500; margin-bottom: 12px;
+        width: 100%; height: 190px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); 
+        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+        color: #52525b; font-size: 13px; font-weight: 600; margin-bottom: 12px; border: 1px dashed #3f3f46;
     }
+    
+    /* Terminal Box (Lebih Hacker Vibe) */
+    .terminal-box {
+        background-color: #000000; color: #10b981; padding: 15px; border-radius: 8px; 
+        font-family: 'Courier New', Courier, monospace; font-size: 13px; border-left: 3px solid #10b981;
+    }
+    
+    /* Override Streamlit Elements untuk konsistensi gelap */
+    p, span, label, div {color: #f8fafc !important;}
 </style>
 """, unsafe_allow_html=True)
 
