@@ -16,53 +16,78 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: SLEEK NEON CYBER AESTHETICS ---
+# --- CSS CUSTOM: MODERN & AMAN (TIDAK MERUSAK KOMPONEN BAWAAN) ---
 st.markdown("""
 <style>
-    /* Global Background (Super Gelap ala IDE/Terminal) */
-    .stApp {background-color: #09090b; color: #f8fafc;}
+    /* Styling Header dengan Gradasi Biru Laut Modern */
+    .main-header {
+        font-size: 30px; 
+        font-weight: 800; 
+        background: linear-gradient(90deg, #0284c7, #2563eb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0px;
+    }
+    .sub-header {
+        font-size: 14px; 
+        color: #64748b; 
+        margin-bottom: 25px;
+    }
     
-    /* Tipografi Futuristik */
-    .main-header {font-size: 32px; font-weight: 900; background: -webkit-linear-gradient(45deg, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px;}
-    .sub-header {font-size: 14px; color: #94a3b8; margin-bottom: 20px;}
-    
-    /* Sleek Search Card dengan Neon Hover Effect */
+    /* Kartu Konten dengan Efek Elevasi & Border Halus */
     .search-card {
-        background-color: #18181b; 
-        border: 1px solid #27272a; 
-        padding: 20px; 
+        background-color: #ffffff; 
+        border: 1px solid #e2e8f0; 
+        padding: 22px; 
         border-radius: 16px; 
-        margin-bottom: 15px;
-        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin-bottom: 18px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
     }
     .search-card:hover {
-        border-color: #06b6d4;
-        transform: translateY(-5px);
-        /* Efek cahaya neon cyan seperti di referensi gambar */
-        box-shadow: 0 0 20px rgba(6, 182, 212, 0.2), 0 0 40px rgba(59, 130, 246, 0.1);
+        border-color: #0284c7;
+        box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.12);
+        transform: translateY(-2px);
     }
     
-    /* Elemen Teks dalam Card */
-    .card-title {color: #e2e8f0 !important; font-size: 19px; font-weight: 800; margin: 0px; letter-spacing: 0.5px;}
-    .card-desc {color: #a1a1aa !important; font-size: 14px; margin: 5px 0px;}
-    .metric-label {font-size: 11px; color: #71717a; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
+    /* Tipografi Kartu yang Pasti Kontras & Terbaca */
+    .card-title {
+        color: #0f172a !important; 
+        font-size: 18px; 
+        font-weight: 700; 
+        margin: 0px 0px 6px 0px;
+    }
+    .card-desc {
+        color: #475569 !important; 
+        font-size: 14px; 
+        margin: 4px 0px;
+    }
+    .metric-label {
+        font-size: 11px; 
+        color: #64748b; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+    }
     
-    /* Placeholder Gambar (Jika gambar lokal gagal) */
+    /* Placeholder Gambar Rapi */
     .image-placeholder {
-        width: 100%; height: 190px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); 
-        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-        color: #52525b; font-size: 13px; font-weight: 600; margin-bottom: 12px; border: 1px dashed #3f3f46;
+        width: 100%; height: 190px; background-color: #f1f5f9; border-radius: 12px; 
+        display: flex; align-items: center; justify-content: center; color: #64748b; 
+        font-size: 13px; font-weight: 500; margin-bottom: 12px; border: 1px dashed #cbd5e1;
     }
     
-    /* Terminal Box (Lebih Hacker Vibe) */
+    /* Terminal Box Ala Sistem Enterprise */
     .terminal-box {
-        background-color: #000000; color: #10b981; padding: 15px; border-radius: 8px; 
-        font-family: 'Courier New', Courier, monospace; font-size: 13px; border-left: 3px solid #10b981;
+        background-color: #0f172a; 
+        color: #38bdf8; 
+        padding: 16px; 
+        border-radius: 10px; 
+        font-family: 'Courier New', Courier, monospace; 
+        font-size: 13px; 
+        border-left: 4px solid #0284c7;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
     }
-    
-    /* Override Streamlit Elements untuk konsistensi gelap */
-    p, span, label, div {color: #f8fafc !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -106,7 +131,7 @@ def render_local_image_html(file_name):
             return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; height:190px; object-fit:cover; border-radius:10px; margin-bottom:12px;">'
         except:
             pass
-    return f'<div class="image-placeholder">📷 Kategori Aset: {file_name}</div>'
+    return f'<div class="image-placeholder">📷 Aset Lokal: {file_name}</div>'
 
 def render_local_image_large(file_name):
     path = f"assets/{file_name}"
@@ -117,9 +142,9 @@ def render_local_image_large(file_name):
             return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; max-height:300px; object-fit:contain; border-radius:12px; border: 1px solid #cbd5e1; margin-bottom:15px;">'
         except:
             pass
-    return '<div class="image-placeholder">Visualisasi Spesimen Taksonomi Utama</div>'
+    return '<div class="image-placeholder">Visualisasi Spesimen Utama</div>'
 
-# --- FUNGSI PENDUKUNG LAINNYA ---
+# --- FUNGSI PENDUKUNG ---
 def validate_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -152,7 +177,7 @@ def render_interactive_3d(file_name):
         b64_model = base64.b64encode(data).decode("utf-8")
         html_code = f"""
         <!DOCTYPE html><html><head><script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
-        <style>body {{ margin: 0; background-color: #f1f5f9; }} model-viewer {{ width: 100%; height: 450px; background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; }}</style>
+        <style>body {{ margin: 0; background-color: #f8fafc; }} model-viewer {{ width: 100%; height: 450px; background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; }}</style>
         </head><body><model-viewer src="data:application/octet-stream;base64,{b64_model}" auto-rotate camera-controls touch-action="pan-y"></model-viewer></body></html>
         """
         components.html(html_code, height=470)
@@ -161,24 +186,24 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.3")
-    st.caption("Local Repository Integrity Enabled")
+    st.markdown("### 🌊 BENTHIC-AI V6.4")
+    st.caption("Enterprise UI & Clean Design")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Local Asset Engine Active")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 Clean Scoped CSS Active")
 
 # ==========================================
 # ALUR 1: UPLOAD & PRE-PROCESSING
 # ==========================================
 if st.session_state.step == 'upload':
     st.markdown('<p class="main-header">Sistem Identifikasi Taksonomi Bawah Air</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Unggah citra lapangan untuk ekstraksi fitur otomatis dan penelusuran GraphRAG.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Platform kecerdasan ekologis berbasis Computer Vision, GraphRAG, dan WoRMS Live API.</p>', unsafe_allow_html=True)
     
     col_up1, col_up2 = st.columns([1, 1.2])
     
     with col_up1:
-        st.subheader("📥 Input Citra Benthos / Pelagis")
+        st.subheader("📥 Input Citra Lapangan")
         up_file = st.file_uploader("Unggah foto (JPG/PNG):", type=['jpg', 'jpeg', 'png'])
         
         if up_file:
@@ -204,13 +229,14 @@ if st.session_state.step == 'upload':
                     st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
             except: pass
         else:
-            st.info("💡 Sistem siap memproses data.")
+            st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi warna dan kontras bawah air secara real-time.")
 
 # ==========================================
 # ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
 # ==========================================
 elif st.session_state.step == 'results':
     st.markdown('<p class="main-header">Kandidat Spesies Teridentifikasi</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Pilih spesimen yang paling sesuai dengan karakteristik visual lapangan untuk diuji melalui model 3D.</p>', unsafe_allow_html=True)
     if st.button("⬅️ Kembali ke Menu Unggah"): st.session_state.step = 'upload'; st.rerun()
     st.divider()
 
@@ -241,7 +267,8 @@ elif st.session_state.step == 'detail':
     spec_key = st.session_state.selected_specie_key
     spec_info = SPECIES_DATABASE[spec_key]
     
-    st.markdown(f'<p class="main-header">Workspace Validasi Spesies Kriptik: {spec_key}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="main-header">Workspace Validasi: {spec_key}</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Panel verifikasi silang antara citra lapangan, referensi taksonomi global, dan pemodelan spasial.</p>', unsafe_allow_html=True)
     
     workspace_col_left, workspace_col_right = st.columns([1, 1])
     
@@ -276,7 +303,7 @@ elif st.session_state.step == 'detail':
         st.markdown(f"""
         <div class="search-card">
             <span class="metric-label">Dimensi Mentah Citra:</span> <h4 style="color:#0f172a; margin:0px;">{spec_info['base_size']} cm</h4>
-            <hr style="border-color:#cbd5e1; margin:8px 0px;">
+            <hr style="border-color:#e2e8f0; margin:8px 0px;">
             <span class="metric-label" style="color:#0284c7;">Ukuran Sebenarnya (Jarak Kamera {cam_distance} cm):</span> 
             <h2 style="color:#0284c7; margin:0px;">{adjusted_size} cm</h2>
         </div>
@@ -285,9 +312,11 @@ elif st.session_state.step == 'detail':
         if st.button("✅ KUNCI VALIDASI & CATAT KE LAPORAN (.CSV)", type="primary", use_container_width=True):
             log_entry = {"Spesies": spec_key, "Ukuran_Asli": spec_info["base_size"], "Ukuran_Koreksi": adjusted_size, "AphiaID": spec_info["aphia"], "Validasi": "Human-in-the-Loop Confirmed"}
             if log_entry not in st.session_state.verified_log: st.session_state.verified_log.append(log_entry)
-            st.success("Tinjauan sukses!")
+            st.success("Tinjauan sukses dicatat ke sistem rekapitulasi riset!")
 
     if len(st.session_state.verified_log) > 0:
         st.divider()
+        st.subheader("📊 Rekapitulasi Data Terverifikasi")
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
+        st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
