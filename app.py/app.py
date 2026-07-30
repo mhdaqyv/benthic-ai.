@@ -16,82 +16,36 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: MODERN & AMAN (TIDAK MERUSAK KOMPONEN BAWAAN) ---
+# --- CSS CUSTOM: ENTERPRISE & CLEAN STABLE ---
 st.markdown("""
 <style>
-    /* Styling Header dengan Gradasi Biru Laut Modern */
     .main-header {
-        font-size: 30px; 
-        font-weight: 800; 
-        background: linear-gradient(90deg, #0284c7, #2563eb);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0px;
+        font-size: 30px; font-weight: 800; background: linear-gradient(90deg, #0284c7, #2563eb);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px;
     }
-    .sub-header {
-        font-size: 14px; 
-        color: #64748b; 
-        margin-bottom: 25px;
-    }
-    
-    /* Kartu Konten dengan Efek Elevasi & Border Halus */
+    .sub-header {font-size: 14px; color: #64748b; margin-bottom: 25px;}
     .search-card {
-        background-color: #ffffff; 
-        border: 1px solid #e2e8f0; 
-        padding: 22px; 
-        border-radius: 16px; 
-        margin-bottom: 18px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        background-color: #ffffff; border: 1px solid #e2e8f0; padding: 22px; 
+        border-radius: 16px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         transition: all 0.3s ease;
     }
     .search-card:hover {
-        border-color: #0284c7;
-        box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.12);
+        border-color: #0284c7; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.12);
         transform: translateY(-2px);
     }
-    
-    /* Tipografi Kartu yang Pasti Kontras & Terbaca */
-    .card-title {
-        color: #0f172a !important; 
-        font-size: 18px; 
-        font-weight: 700; 
-        margin: 0px 0px 6px 0px;
-    }
-    .card-desc {
-        color: #475569 !important; 
-        font-size: 14px; 
-        margin: 4px 0px;
-    }
-    .metric-label {
-        font-size: 11px; 
-        color: #64748b; 
-        font-weight: 700; 
-        text-transform: uppercase; 
-        letter-spacing: 0.5px;
-    }
-    
-    /* Placeholder Gambar Rapi */
+    .card-title {color: #0f172a !important; font-size: 18px; font-weight: 700; margin: 0px 0px 6px 0px;}
+    .card-desc {color: #475569 !important; font-size: 14px; margin: 4px 0px;}
+    .metric-label {font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
     .image-placeholder {
         width: 100%; height: 190px; background-color: #f1f5f9; border-radius: 12px; 
         display: flex; align-items: center; justify-content: center; color: #64748b; 
         font-size: 13px; font-weight: 500; margin-bottom: 12px; border: 1px dashed #cbd5e1;
     }
-    
-    /* Terminal Box Ala Sistem Enterprise */
-    .terminal-box {
-        background-color: #0f172a; 
-        color: #38bdf8; 
-        padding: 16px; 
-        border-radius: 10px; 
-        font-family: 'Courier New', Courier, monospace; 
-        font-size: 13px; 
-        border-left: 4px solid #0284c7;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE SPESIES (5 BIOTA LENGKAP) ---
+# --- DATABASE SPESIES ---
+# Catatan: Guppy sementara masih terpasang. Segera ganti dengan clownfish.glb kalau file-nya udah lu download!
 SPECIES_DATABASE = {
     "Thunnus albacares (Yellowfin Tuna)": {
         "file_3d": "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
@@ -115,13 +69,25 @@ SPECIES_DATABASE = {
     }
 }
 
-# --- STATE MANAGEMENT ---
+# --- STATE MANAGEMENT & CALLBACK ---
 if 'step' not in st.session_state: st.session_state.step = 'upload'
 if 'selected_specie_key' not in st.session_state: st.session_state.selected_specie_key = None
 if 'verified_log' not in st.session_state: st.session_state.verified_log = []
 if 'enhanced_img_cache' not in st.session_state: st.session_state.enhanced_img_cache = None
 
-# --- FUNGSI RENDERING GAMBAR LOKAL AMAN ---
+# INI KUNCI ANTI-TERTUKARNYA (Callback Function)
+def select_species(sp_key):
+    st.session_state.selected_specie_key = sp_key
+    st.session_state.step = 'detail'
+
+def go_back_to_upload():
+    st.session_state.step = 'upload'
+    st.session_state.enhanced_img_cache = None
+
+def go_back_to_results():
+    st.session_state.step = 'results'
+
+# --- FUNGSI RENDERING & PENDUKUNG ---
 def render_local_image_html(file_name):
     path = f"assets/{file_name}"
     if os.path.exists(path):
@@ -129,8 +95,7 @@ def render_local_image_html(file_name):
             with open(path, "rb") as image_file:
                 encoded = base64.b64encode(image_file.read()).decode()
             return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; height:190px; object-fit:cover; border-radius:10px; margin-bottom:12px;">'
-        except:
-            pass
+        except: pass
     return f'<div class="image-placeholder">📷 Aset Lokal: {file_name}</div>'
 
 def render_local_image_large(file_name):
@@ -140,17 +105,16 @@ def render_local_image_large(file_name):
             with open(path, "rb") as image_file:
                 encoded = base64.b64encode(image_file.read()).decode()
             return f'<img src="data:image/jpeg;base64,{encoded}" style="width:100%; max-height:300px; object-fit:contain; border-radius:12px; border: 1px solid #cbd5e1; margin-bottom:15px;">'
-        except:
-            pass
+        except: pass
     return '<div class="image-placeholder">Visualisasi Spesimen Utama</div>'
 
-# --- FUNGSI PENDUKUNG ---
 def validate_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
     mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
-    if mean_r > mean_b and mean_r > mean_g:
+    
+    if mean_r > (mean_b + 25) and mean_r > (mean_g + 25):
         return False, "Sistem menolak citra. Spektrum warna merah terlalu dominan (Bukan Lingkungan Bawah Air)."
     return True, "Validasi Ekologi Diterima."
 
@@ -186,26 +150,24 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.4")
-    st.caption("Enterprise UI & Clean Design")
+    st.markdown("### 🌊 BENTHIC-AI V6.8")
+    st.caption("Callback Routing Active")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Clean Scoped CSS Active")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 State Mismatch Fully Fixed")
 
 # ==========================================
-# ALUR 1: UPLOAD & PRE-PROCESSING
+# ALUR 1: UPLOAD
 # ==========================================
 if st.session_state.step == 'upload':
     st.markdown('<p class="main-header">Sistem Identifikasi Taksonomi Bawah Air</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Platform kecerdasan ekologis berbasis Computer Vision, GraphRAG, dan WoRMS Live API.</p>', unsafe_allow_html=True)
     
     col_up1, col_up2 = st.columns([1, 1.2])
-    
     with col_up1:
         st.subheader("📥 Input Citra Lapangan")
         up_file = st.file_uploader("Unggah foto (JPG/PNG):", type=['jpg', 'jpeg', 'png'])
-        
         if up_file:
             is_valid, msg = validate_underwater_image(up_file.getvalue())
             if not is_valid:
@@ -213,8 +175,7 @@ if st.session_state.step == 'upload':
             else:
                 st.success(f"✅ {msg}")
                 st.image(up_file, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
-                
-                if st.button("🚀 EKSTRAKSI FITUR & PENCARIAN (GRAPHRAG)", type="primary", use_container_width=True):
+                if st.button("🚀 EKSTRAKSI FITUR (GRAPHRAG)", type="primary", use_container_width=True):
                     st.session_state.enhanced_img_cache = enhance_underwater_image(up_file.getvalue())
                     st.session_state.step = 'results'
                     st.rerun()
@@ -229,40 +190,53 @@ if st.session_state.step == 'upload':
                     st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
             except: pass
         else:
-            st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi warna dan kontras bawah air secara real-time.")
+            st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi.")
 
 # ==========================================
-# ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
+# ALUR 2: HASIL PENCARIAN (CALLBACK STRICT ROUTING)
 # ==========================================
 elif st.session_state.step == 'results':
     st.markdown('<p class="main-header">Kandidat Spesies Teridentifikasi</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Pilih spesimen yang paling sesuai dengan karakteristik visual lapangan untuk diuji melalui model 3D.</p>', unsafe_allow_html=True)
-    if st.button("⬅️ Kembali ke Menu Unggah"): st.session_state.step = 'upload'; st.rerun()
+    st.button("⬅️ Kembali ke Menu Unggah", on_click=go_back_to_upload)
     st.divider()
 
-    cols = st.columns(2)
-    idx = 0
-    for key, data in SPECIES_DATABASE.items():
-        with cols[idx % 2]:
-            img_html = render_local_image_html(data["local_img"])
-            st.markdown(f"""
-            <div class="search-card">
-                {img_html}
-                <p class="card-title">{key}</p>
-                <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
-                st.session_state.selected_specie_key = key
-                st.session_state.step = 'detail'
-                st.rerun()
-        idx += 1
+    species_items = list(SPECIES_DATABASE.items())
+    for i in range(0, len(species_items), 2):
+        cols = st.columns(2)
+        
+        with cols[0]:
+            if i < len(species_items):
+                key, data = species_items[i]
+                img_html = render_local_image_html(data["local_img"])
+                st.markdown(f"""
+                <div class="search-card">
+                    {img_html}
+                    <p class="card-title">{key}</p>
+                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                </div>
+                """, unsafe_allow_html=True)
+                # PENGGUNAAN CALLBACK ON_CLICK
+                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i}", on_click=select_species, args=(key,), use_container_width=True)
+                    
+        with cols[1]:
+            if i + 1 < len(species_items):
+                key, data = species_items[i+1]
+                img_html = render_local_image_html(data["local_img"])
+                st.markdown(f"""
+                <div class="search-card">
+                    {img_html}
+                    <p class="card-title">{key}</p>
+                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                </div>
+                """, unsafe_allow_html=True)
+                # PENGGUNAAN CALLBACK ON_CLICK
+                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i+1}", on_click=select_species, args=(key,), use_container_width=True)
 
 # ==========================================
 # ALUR 3: INTERACTIVE VALIDATION WORKSPACE
 # ==========================================
 elif st.session_state.step == 'detail':
-    if st.button("⬅️ Kembali ke Daftar Hasil"): st.session_state.step = 'results'; st.rerun()
+    st.button("⬅️ Kembali ke Daftar Hasil", on_click=go_back_to_results)
         
     spec_key = st.session_state.selected_specie_key
     spec_info = SPECIES_DATABASE[spec_key]
@@ -274,7 +248,6 @@ elif st.session_state.step == 'detail':
     
     with workspace_col_left:
         st.subheader("📸 Citra Lapangan & Visual Target")
-        
         if st.session_state.enhanced_img_cache is not None:
             st.image(st.session_state.enhanced_img_cache, use_column_width=True, caption="Citra Sampel Lapangan (De-hazed)")
         
@@ -320,4 +293,3 @@ elif st.session_state.step == 'detail':
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
         st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
-        
