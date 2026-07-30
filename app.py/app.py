@@ -150,9 +150,14 @@ def validate_underwater_image(image_bytes):
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
     mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
-    if mean_r > mean_b and mean_r > mean_g:
+    
+    # KALIBRASI THRESHOLD: Ditambah toleransi 25 poin 
+    # (Karang dangkal berwarna cokelat/merah sekarang akan lolos, 
+    # tapi foto selfie atau meja kayu tetap akan ditolak)
+    if mean_r > (mean_b + 25) and mean_r > (mean_g + 25):
         return False, "Sistem menolak citra. Spektrum warna merah terlalu dominan (Bukan Lingkungan Bawah Air)."
     return True, "Validasi Ekologi Diterima."
+
 
 def enhance_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
