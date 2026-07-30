@@ -44,15 +44,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE SPESIES ---
-# Catatan: Guppy sementara masih terpasang. Segera ganti dengan clownfish.glb kalau file-nya udah lu download!
+# --- DATABASE SPESIES (GUPPY DIHAPUS, DIGANTI CLOWNFISH) ---
 SPECIES_DATABASE = {
     "Thunnus albacares (Yellowfin Tuna)": {
         "file_3d": "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
         "confidence": 96.4, "base_size": 45.2, "aphia": "127023", "local_img": "tuna.jpg"
     },
     "Amphiprion ocellaris (Clownfish)": {
-        "file_3d": "guppy_fish.glb", "common": "Ikan Badut / Anemon", "family": "Pomacentridae", "class": "Actinopterygii",
+        "file_3d": "clownfish.glb", "common": "Ikan Badut / Anemon", "family": "Pomacentridae", "class": "Actinopterygii",
         "confidence": 94.8, "base_size": 8.5, "aphia": "278402", "local_img": "clownfish.jpg"
     },
     "Diploria labyrinthiformis (Brain Coral)": {
@@ -75,7 +74,6 @@ if 'selected_specie_key' not in st.session_state: st.session_state.selected_spec
 if 'verified_log' not in st.session_state: st.session_state.verified_log = []
 if 'enhanced_img_cache' not in st.session_state: st.session_state.enhanced_img_cache = None
 
-# INI KUNCI ANTI-TERTUKARNYA (Callback Function)
 def select_species(sp_key):
     st.session_state.selected_specie_key = sp_key
     st.session_state.step = 'detail'
@@ -150,12 +148,12 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.8")
-    st.caption("Callback Routing Active")
+    st.markdown("### 🌊 BENTHIC-AI V6.9")
+    st.caption("Perfected Callback Architecture")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 State Mismatch Fully Fixed")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 Scoping Bug Fixed")
 
 # ==========================================
 # ALUR 1: UPLOAD
@@ -193,44 +191,46 @@ if st.session_state.step == 'upload':
             st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi.")
 
 # ==========================================
-# ALUR 2: HASIL PENCARIAN (CALLBACK STRICT ROUTING)
+# ALUR 2: HASIL PENCARIAN (STRICT SCOPE ROUTING)
 # ==========================================
 elif st.session_state.step == 'results':
     st.markdown('<p class="main-header">Kandidat Spesies Teridentifikasi</p>', unsafe_allow_html=True)
     st.button("⬅️ Kembali ke Menu Unggah", on_click=go_back_to_upload)
     st.divider()
 
-    species_items = list(SPECIES_DATABASE.items())
-    for i in range(0, len(species_items), 2):
+    species_keys = list(SPECIES_DATABASE.keys())
+    for i in range(0, len(species_keys), 2):
         cols = st.columns(2)
         
-        with cols[0]:
-            if i < len(species_items):
-                key, data = species_items[i]
-                img_html = render_local_image_html(data["local_img"])
+        # KOLOM KIRI (Variabel k_left diisolasi)
+        if i < len(species_keys):
+            k_left = species_keys[i]
+            d_left = SPECIES_DATABASE[k_left]
+            with cols[0]:
+                img_html = render_local_image_html(d_left["local_img"])
                 st.markdown(f"""
                 <div class="search-card">
                     {img_html}
-                    <p class="card-title">{key}</p>
-                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                    <p class="card-title">{k_left}</p>
+                    <p class="card-desc"><b>Famili:</b> {d_left['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{d_left['confidence']}%</span></p>
                 </div>
                 """, unsafe_allow_html=True)
-                # PENGGUNAAN CALLBACK ON_CLICK
-                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i}", on_click=select_species, args=(key,), use_container_width=True)
+                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i}", on_click=select_species, args=(k_left,), use_container_width=True)
                     
-        with cols[1]:
-            if i + 1 < len(species_items):
-                key, data = species_items[i+1]
-                img_html = render_local_image_html(data["local_img"])
+        # KOLOM KANAN (Variabel k_right diisolasi)
+        if i + 1 < len(species_keys):
+            k_right = species_keys[i+1]
+            d_right = SPECIES_DATABASE[k_right]
+            with cols[1]:
+                img_html = render_local_image_html(d_right["local_img"])
                 st.markdown(f"""
                 <div class="search-card">
                     {img_html}
-                    <p class="card-title">{key}</p>
-                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                    <p class="card-title">{k_right}</p>
+                    <p class="card-desc"><b>Famili:</b> {d_right['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{d_right['confidence']}%</span></p>
                 </div>
                 """, unsafe_allow_html=True)
-                # PENGGUNAAN CALLBACK ON_CLICK
-                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i+1}", on_click=select_species, args=(key,), use_container_width=True)
+                st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i+1}", on_click=select_species, args=(k_right,), use_container_width=True)
 
 # ==========================================
 # ALUR 3: INTERACTIVE VALIDATION WORKSPACE
