@@ -130,7 +130,6 @@ def validate_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
-    mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
     
     # Kalibrasi toleransi threshold +25 untuk karang dangkal berkecokelatan
     if mean_r > (mean_b + 25) and mean_r > (mean_g + 25):
@@ -169,12 +168,12 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.5")
-    st.caption("Row-by-Row Grid Stable")
+    st.markdown("### 🌊 BENTHIC-AI V6.6")
+    st.caption("Safe Index Routing Active")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Grid Mismatch Fixed")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 State Mismatch Resolved")
 
 # ==========================================
 # ALUR 1: UPLOAD & PRE-PROCESSING
@@ -215,7 +214,7 @@ if st.session_state.step == 'upload':
             st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi warna dan kontras bawah air secara real-time.")
 
 # ==========================================
-# ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT (ROW-BY-ROW FIXED)
+# ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT (SAFE INTEGER INDEX ROUTING)
 # ==========================================
 elif st.session_state.step == 'results':
     st.markdown('<p class="main-header">Kandidat Spesies Teridentifikasi</p>', unsafe_allow_html=True)
@@ -223,7 +222,7 @@ elif st.session_state.step == 'results':
     if st.button("⬅️ Kembali ke Menu Unggah"): st.session_state.step = 'upload'; st.rerun()
     st.divider()
 
-    # Perbaikan Grid: Render Row-by-Row agar tidak terjadi mismatch indeks kartu
+    # Perbaikan Utama: Menggunakan indeks integer murni untuk key tombol agar state tidak tertukar
     species_items = list(SPECIES_DATABASE.items())
     for i in range(0, len(species_items), 2):
         cols = st.columns(2)
@@ -240,7 +239,8 @@ elif st.session_state.step == 'results':
                     <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
+                # Kunci menggunakan indeks i murni, dijamin aman dari bentrok string spesial
+                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_idx_{i}", use_container_width=True):
                     st.session_state.selected_specie_key = key
                     st.session_state.step = 'detail'
                     st.rerun()
@@ -257,7 +257,8 @@ elif st.session_state.step == 'results':
                     <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
                 </div>
                 """, unsafe_allow_html=True)
-                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
+                # Kunci menggunakan indeks i+1 murni
+                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_idx_{i+1}", use_container_width=True):
                     st.session_state.selected_specie_key = key
                     st.session_state.step = 'detail'
                     st.rerun()
@@ -324,4 +325,3 @@ elif st.session_state.step == 'detail':
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
         st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
-        
