@@ -16,10 +16,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM: MODERN & AMAN (TIDAK MERUSAK KOMPONEN BAWAAN) ---
+# --- CSS CUSTOM: ENTERPRISE & CLEAN STABLE ---
 st.markdown("""
 <style>
-    /* Styling Header dengan Gradasi Biru Laut Modern */
     .main-header {
         font-size: 30px; 
         font-weight: 800; 
@@ -33,8 +32,6 @@ st.markdown("""
         color: #64748b; 
         margin-bottom: 25px;
     }
-    
-    /* Kartu Konten dengan Efek Elevasi & Border Halus */
     .search-card {
         background-color: #ffffff; 
         border: 1px solid #e2e8f0; 
@@ -49,8 +46,6 @@ st.markdown("""
         box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.12);
         transform: translateY(-2px);
     }
-    
-    /* Tipografi Kartu yang Pasti Kontras & Terbaca */
     .card-title {
         color: #0f172a !important; 
         font-size: 18px; 
@@ -69,24 +64,10 @@ st.markdown("""
         text-transform: uppercase; 
         letter-spacing: 0.5px;
     }
-    
-    /* Placeholder Gambar Rapi */
     .image-placeholder {
         width: 100%; height: 190px; background-color: #f1f5f9; border-radius: 12px; 
         display: flex; align-items: center; justify-content: center; color: #64748b; 
         font-size: 13px; font-weight: 500; margin-bottom: 12px; border: 1px dashed #cbd5e1;
-    }
-    
-    /* Terminal Box Ala Sistem Enterprise */
-    .terminal-box {
-        background-color: #0f172a; 
-        color: #38bdf8; 
-        padding: 16px; 
-        border-radius: 10px; 
-        font-family: 'Courier New', Courier, monospace; 
-        font-size: 13px; 
-        border-left: 4px solid #0284c7;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -151,13 +132,10 @@ def validate_underwater_image(image_bytes):
     b, g, r = cv2.split(img)
     mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
     
-    # KALIBRASI THRESHOLD: Ditambah toleransi 25 poin 
-    # (Karang dangkal berwarna cokelat/merah sekarang akan lolos, 
-    # tapi foto selfie atau meja kayu tetap akan ditolak)
+    # Kalibrasi toleransi threshold +25 untuk karang dangkal berkecokelatan
     if mean_r > (mean_b + 25) and mean_r > (mean_g + 25):
         return False, "Sistem menolak citra. Spektrum warna merah terlalu dominan (Bukan Lingkungan Bawah Air)."
     return True, "Validasi Ekologi Diterima."
-
 
 def enhance_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
@@ -191,12 +169,12 @@ def render_interactive_3d(file_name):
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3061/3061341.png", width=60)
-    st.markdown("### 🌊 BENTHIC-AI V6.4")
-    st.caption("Enterprise UI & Clean Design")
+    st.markdown("### 🌊 BENTHIC-AI V6.5")
+    st.caption("Row-by-Row Grid Stable")
     st.divider()
     cam_distance = st.slider("Jarak Lensa (Kalibrasi Parallax):", 20, 150, 50)
     st.divider()
-    st.success("🟢 WoRMS REST API (Live)\n🟢 Clean Scoped CSS Active")
+    st.success("🟢 WoRMS REST API (Live)\n🟢 Grid Mismatch Fixed")
 
 # ==========================================
 # ALUR 1: UPLOAD & PRE-PROCESSING
@@ -237,7 +215,7 @@ if st.session_state.step == 'upload':
             st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi warna dan kontras bawah air secara real-time.")
 
 # ==========================================
-# ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT
+# ALUR 2: HASIL PENCARIAN MULTI-KANDIDAT (ROW-BY-ROW FIXED)
 # ==========================================
 elif st.session_state.step == 'results':
     st.markdown('<p class="main-header">Kandidat Spesies Teridentifikasi</p>', unsafe_allow_html=True)
@@ -245,23 +223,44 @@ elif st.session_state.step == 'results':
     if st.button("⬅️ Kembali ke Menu Unggah"): st.session_state.step = 'upload'; st.rerun()
     st.divider()
 
-    cols = st.columns(2)
-    idx = 0
-    for key, data in SPECIES_DATABASE.items():
-        with cols[idx % 2]:
-            img_html = render_local_image_html(data["local_img"])
-            st.markdown(f"""
-            <div class="search-card">
-                {img_html}
-                <p class="card-title">{key}</p>
-                <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
-                st.session_state.selected_specie_key = key
-                st.session_state.step = 'detail'
-                st.rerun()
-        idx += 1
+    # Perbaikan Grid: Render Row-by-Row agar tidak terjadi mismatch indeks kartu
+    species_items = list(SPECIES_DATABASE.items())
+    for i in range(0, len(species_items), 2):
+        cols = st.columns(2)
+        
+        # Kolom Kiri
+        with cols[0]:
+            if i < len(species_items):
+                key, data = species_items[i]
+                img_html = render_local_image_html(data["local_img"])
+                st.markdown(f"""
+                <div class="search-card">
+                    {img_html}
+                    <p class="card-title">{key}</p>
+                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
+                    st.session_state.selected_specie_key = key
+                    st.session_state.step = 'detail'
+                    st.rerun()
+                    
+        # Kolom Kanan
+        with cols[1]:
+            if i + 1 < len(species_items):
+                key, data = species_items[i+1]
+                img_html = render_local_image_html(data["local_img"])
+                st.markdown(f"""
+                <div class="search-card">
+                    {img_html}
+                    <p class="card-title">{key}</p>
+                    <p class="card-desc"><b>Famili:</b> {data['family']} | <b>Akurasi:</b> <span style="color:#16a34a; font-weight:bold;">{data['confidence']}%</span></p>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"🔍 Validasi 3D & Koreksi Parallax", key=f"btn_{key}", use_container_width=True):
+                    st.session_state.selected_specie_key = key
+                    st.session_state.step = 'detail'
+                    st.rerun()
 
 # ==========================================
 # ALUR 3: INTERACTIVE VALIDATION WORKSPACE
@@ -325,3 +324,4 @@ elif st.session_state.step == 'detail':
         df_log = pd.DataFrame(st.session_state.verified_log)
         st.dataframe(df_log, use_container_width=True, hide_index=True)
         st.download_button(label="📥 UNDUH LAPORAN KESELURUHAN (.CSV)", data=df_log.to_csv(index=False).encode('utf-8'), file_name="Benthic_AI_Report.csv", mime="text/csv")
+        
