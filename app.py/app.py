@@ -44,7 +44,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE SPESIES (GUPPY DIHAPUS, DIGANTI CLOWNFISH) ---
+# --- DATABASE SPESIES ---
 SPECIES_DATABASE = {
     "Thunnus albacares (Yellowfin Tuna)": {
         "file_3d": "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
@@ -135,15 +135,33 @@ def get_worms_live(aphia_id):
 
 def render_interactive_3d(file_name):
     try:
-        with open(f"assets/{file_name}", "rb") as f: data = f.read()
+        with open(f"assets/{file_name}", "rb") as f: 
+            data = f.read()
+        
         b64_model = base64.b64encode(data).decode("utf-8")
+        
+        # PERBAIKAN: MIME type model/gltf-binary untuk file .glb
         html_code = f"""
-        <!DOCTYPE html><html><head><script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
-        <style>body {{ margin: 0; background-color: #f8fafc; }} model-viewer {{ width: 100%; height: 450px; background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; }}</style>
-        </head><body><model-viewer src="data:application/octet-stream;base64,{b64_model}" auto-rotate camera-controls touch-action="pan-y"></model-viewer></body></html>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+            <style>
+                body {{ margin: 0; background-color: #f8fafc; }} 
+                model-viewer {{ width: 100%; height: 450px; background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; }}
+            </style>
+        </head>
+        <body>
+            <model-viewer src="data:model/gltf-binary;base64,{b64_model}" auto-rotate camera-controls touch-action="pan-y"></model-viewer>
+        </body>
+        </html>
         """
         components.html(html_code, height=470)
-    except: st.error(f"File 3D '{file_name}' tidak ditemukan di folder 'assets'.")
+        
+    except FileNotFoundError:
+        st.error(f"🚨 File 3D '{file_name}' tidak ditemukan di dalam folder 'assets'. Pastikan file ada!")
+    except Exception as e:
+        st.error(f"🚨 Gagal memuat 3D: {e}")
 
 # --- SIDEBAR KONTROL ---
 with st.sidebar:
@@ -202,7 +220,7 @@ elif st.session_state.step == 'results':
     for i in range(0, len(species_keys), 2):
         cols = st.columns(2)
         
-        # KOLOM KIRI (Variabel k_left diisolasi)
+        # KOLOM KIRI
         if i < len(species_keys):
             k_left = species_keys[i]
             d_left = SPECIES_DATABASE[k_left]
@@ -217,7 +235,7 @@ elif st.session_state.step == 'results':
                 """, unsafe_allow_html=True)
                 st.button(f"🔍 Validasi 3D", key=f"btn_cb_{i}", on_click=select_species, args=(k_left,), use_container_width=True)
                     
-        # KOLOM KANAN (Variabel k_right diisolasi)
+        # KOLOM KANAN
         if i + 1 < len(species_keys):
             k_right = species_keys[i+1]
             d_right = SPECIES_DATABASE[k_right]
@@ -267,6 +285,7 @@ elif st.session_state.step == 'detail':
         
     with workspace_col_right:
         st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
+        # --- FUNGSI DIPANGGIL DI SINI ---
         render_interactive_3d(spec_info["file_3d"])
         
         st.markdown("**Koreksi Spasial Parallax Error**")
