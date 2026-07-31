@@ -44,29 +44,26 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- DATABASE SPESIES (MENGGUNAKAN RAW GITHUB URL UNTUK 3D) ---
-# Ini URL mentah dari repo GitHub kamu biar modelnya langsung di-download sama browser
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/mhdaqyv/benthic-ai/main/assets/"
-
+# --- DATABASE SPESIES ---
 SPECIES_DATABASE = {
     "Thunnus albacares (Yellowfin Tuna)": {
-        "file_3d": GITHUB_RAW_URL + "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
+        "file_3d": "Tuna.glb", "common": "Tuna Sirip Kuning", "family": "Scombridae", "class": "Actinopterygii",
         "confidence": 96.4, "base_size": 45.2, "aphia": "127023", "local_img": "tuna.jpg"
     },
     "Amphiprion ocellaris (Clownfish)": {
-        "file_3d": GITHUB_RAW_URL + "clownfish.glb", "common": "Ikan Badut / Anemon", "family": "Pomacentridae", "class": "Actinopterygii",
+        "file_3d": "clownfish.glb", "common": "Ikan Badut / Anemon", "family": "Pomacentridae", "class": "Actinopterygii",
         "confidence": 94.8, "base_size": 8.5, "aphia": "278402", "local_img": "clownfish.jpg"
     },
     "Diploria labyrinthiformis (Brain Coral)": {
-        "file_3d": GITHUB_RAW_URL + "brain_coral.glb", "common": "Karang Otak Labirin", "family": "Merulinidae", "class": "Anthozoa",
+        "file_3d": "brain_coral.glb", "common": "Karang Otak Labirin", "family": "Merulinidae", "class": "Anthozoa",
         "confidence": 88.5, "base_size": 28.0, "aphia": "287877", "local_img": "brain_coral.jpg"
     },
     "Pavona clavus (Column Coral)": {
-        "file_3d": GITHUB_RAW_URL + "pavona_coral.glb", "common": "Karang Kolom Pavona", "family": "Agariciidae", "class": "Anthozoa",
+        "file_3d": "pavona_coral.glb", "common": "Karang Kolom Pavona", "family": "Agariciidae", "class": "Anthozoa",
         "confidence": 76.2, "base_size": 32.4, "aphia": "206512", "local_img": "pavona_coral.jpg"
     },
     "Corallium rubrum (Red Coral)": {
-        "file_3d": GITHUB_RAW_URL + "low_poly_red_coral.glb", "common": "Karang Merah Mediterania", "family": "Coralliidae", "class": "Anthozoa",
+        "file_3d": "low_poly_red_coral.glb", "common": "Karang Merah Mediterania", "family": "Coralliidae", "class": "Anthozoa",
         "confidence": 85.0, "base_size": 14.1, "aphia": "125395", "local_img": "red_coral.jpg"
     }
 }
@@ -136,9 +133,14 @@ def get_worms_live(aphia_id):
     except: pass
     return {"ScientificName": "API Timeout", "Status": "accepted", "Kingdom": "Animalia", "Phylum": "Chordata", "Authority": "Standar"}
 
-def render_interactive_3d(model_url):
+def render_interactive_3d(file_name):
     try:
-        # PERBAIKAN: Fungsi ini sekarang super ringan karena cuma masukin URL aja
+        with open(f"assets/{file_name}", "rb") as f: 
+            data = f.read()
+        
+        b64_model = base64.b64encode(data).decode("utf-8")
+        
+        # PERBAIKAN: MIME type model/gltf-binary untuk file .glb
         html_code = f"""
         <!DOCTYPE html>
         <html>
@@ -150,12 +152,14 @@ def render_interactive_3d(model_url):
             </style>
         </head>
         <body>
-            <model-viewer src="{model_url}" auto-rotate camera-controls touch-action="pan-y"></model-viewer>
+            <model-viewer src="data:model/gltf-binary;base64,{b64_model}" auto-rotate camera-controls touch-action="pan-y"></model-viewer>
         </body>
         </html>
         """
         components.html(html_code, height=470)
         
+    except FileNotFoundError:
+        st.error(f"🚨 File 3D '{file_name}' tidak ditemukan di dalam folder 'assets'. Pastikan file ada!")
     except Exception as e:
         st.error(f"🚨 Gagal memuat 3D: {e}")
 
@@ -281,8 +285,7 @@ elif st.session_state.step == 'detail':
         
     with workspace_col_right:
         st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
-        
-        # FUNGSI DIPANGGIL DI SINI DENGAN URL
+        # --- FUNGSI DIPANGGIL DI SINI ---
         render_interactive_3d(spec_info["file_3d"])
         
         st.markdown("**Koreksi Spasial Parallax Error**")
