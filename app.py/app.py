@@ -107,29 +107,14 @@ def render_local_image_large(file_name):
     return '<div class="image-placeholder">Visualisasi Spesimen Utama</div>'
 
 def validate_underwater_image(image_bytes):
-    # PERBAIKAN LOGIKA PENOLAKAN ABSOLUT
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    b, g, r = cv2.split(img)
+    mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
     
-    # Konversi mutlak dari BGR ke RGB
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    r, g, b = cv2.split(img_rgb)
-    
-    mean_r, mean_g, mean_b = np.mean(r), np.mean(g), np.mean(b)
-    total_intensity = mean_r + mean_g + mean_b
-    
-    if total_intensity == 0:
-        return False, "Sistem menolak citra. Citra gelap total atau rusak."
-        
-    # Hitung persentase warna merah dari keseluruhan intensitas warna
-    red_ratio = (mean_r / total_intensity) * 100
-    
-    # AMBANG BATAS: Daratan/langit/ruangan pasti punya red_ratio di atas 28%
-    # Bawah air laut sejati pasti red_ratio-nya sangat rendah karena terserap air
-    if red_ratio > 28.0:
-        return False, f"Sistem menolak citra! Rasio spektrum merah terlalu tinggi ({red_ratio:.1f}% > 28%). Terdeteksi sebagai citra non-akuatik."
-        
-    return True, f"Validasi Ekologi Diterima. (Red-Ratio: {red_ratio:.1f}%)"
+    if mean_r > (mean_b + 25) and mean_r > (mean_g + 25):
+        return False, "Sistem menolak citra. Spektrum warna merah terlalu dominan (Bukan Lingkungan Bawah Air)."
+    return True, "Validasi Ekologi Diterima."
 
 def enhance_underwater_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
@@ -155,6 +140,7 @@ def render_interactive_3d(file_name):
         
         b64_model = base64.b64encode(data).decode("utf-8")
         
+        # PERBAIKAN: MIME type model/gltf-binary untuk file .glb
         html_code = f"""
         <!DOCTYPE html>
         <html>
@@ -299,6 +285,7 @@ elif st.session_state.step == 'detail':
         
     with workspace_col_right:
         st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
+        # --- FUNGSI DIPANGGIL DI SINI ---
         render_interactive_3d(spec_info["file_3d"])
         
         st.markdown("**Koreksi Spasial Parallax Error**")
