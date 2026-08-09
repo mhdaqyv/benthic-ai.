@@ -184,20 +184,23 @@ if st.session_state.step == 'upload':
         st.subheader("📥 Input Citra Lapangan")
         up_file = st.file_uploader("Unggah foto (JPG/PNG):", type=['jpg', 'jpeg', 'png'])
         if up_file:
-            is_valid, msg = validate_underwater_image(up_file.getvalue())
+            # BYPASS TOTAL: Kita ekstrak langsung wujud asli fotonya (raw_bytes).
+            # Kita TIDAK lagi menggunakan objek 'up_file' untuk st.image().
+            raw_bytes = up_file.getvalue()
+            
+            is_valid, msg = validate_underwater_image(raw_bytes)
+            
             if not is_valid:
-                st.error("🚨 PENOLAKAN SISTEM"); st.warning(msg)
+                st.error("🚨 PENOLAKAN SISTEM")
+                st.warning(msg)
             else:
                 st.success(f"✅ {msg}")
                 
-                # --- PERBAIKAN BUG: MENCEGAH TYPEERROR SAAT RENDER GAMBAR ---
-                # Mengembalikan posisi pointer pembacaan file Streamlit ke 0
-                up_file.seek(0)
-                
-                st.image(up_file, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
+                # Render gambar langsung dari data mentah, dijamin 100% lolos TypeError
+                st.image(raw_bytes, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
                 
                 if st.button("🚀 EKSTRAKSI FITUR (GRAPHRAG)", type="primary", use_container_width=True):
-                    st.session_state.enhanced_img_cache = enhance_underwater_image(up_file.getvalue())
+                    st.session_state.enhanced_img_cache = enhance_underwater_image(raw_bytes)
                     st.session_state.step = 'results'
                     st.rerun()
 
@@ -205,13 +208,14 @@ if st.session_state.step == 'upload':
         st.subheader("🔬 Pra-Pemrosesan: De-Hazing Otomatis")
         if up_file:
             try:
-                # Memastikan ulang pointer tetap aman untuk column 2
-                up_file.seek(0)
-                is_valid, _ = validate_underwater_image(up_file.getvalue())
+                # Gunakan raw_bytes juga untuk kolom kedua agar stabil
+                raw_bytes = up_file.getvalue()
+                is_valid, _ = validate_underwater_image(raw_bytes)
                 if is_valid:
-                    enhanced_preview = enhance_underwater_image(up_file.getvalue())
+                    enhanced_preview = enhance_underwater_image(raw_bytes)
                     st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
-            except: pass
+            except Exception as e: 
+                pass
         else:
             st.info("💡 Unggah foto sampel di sebelah kiri untuk melihat hasil koreksi.")
 
