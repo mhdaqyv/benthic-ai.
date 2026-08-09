@@ -140,7 +140,6 @@ def render_interactive_3d(file_name):
         
         b64_model = base64.b64encode(data).decode("utf-8")
         
-        # PERBAIKAN: MIME type model/gltf-binary untuk file .glb
         html_code = f"""
         <!DOCTYPE html>
         <html>
@@ -190,7 +189,13 @@ if st.session_state.step == 'upload':
                 st.error("🚨 PENOLAKAN SISTEM"); st.warning(msg)
             else:
                 st.success(f"✅ {msg}")
+                
+                # --- PERBAIKAN BUG: MENCEGAH TYPEERROR SAAT RENDER GAMBAR ---
+                # Mengembalikan posisi pointer pembacaan file Streamlit ke 0
+                up_file.seek(0)
+                
                 st.image(up_file, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
+                
                 if st.button("🚀 EKSTRAKSI FITUR (GRAPHRAG)", type="primary", use_container_width=True):
                     st.session_state.enhanced_img_cache = enhance_underwater_image(up_file.getvalue())
                     st.session_state.step = 'results'
@@ -200,6 +205,8 @@ if st.session_state.step == 'upload':
         st.subheader("🔬 Pra-Pemrosesan: De-Hazing Otomatis")
         if up_file:
             try:
+                # Memastikan ulang pointer tetap aman untuk column 2
+                up_file.seek(0)
                 is_valid, _ = validate_underwater_image(up_file.getvalue())
                 if is_valid:
                     enhanced_preview = enhance_underwater_image(up_file.getvalue())
@@ -285,7 +292,6 @@ elif st.session_state.step == 'detail':
         
     with workspace_col_right:
         st.subheader("🐡 Replika Visual Spesimen 3D Interaktif")
-        # --- FUNGSI DIPANGGIL DI SINI ---
         render_interactive_3d(spec_info["file_3d"])
         
         st.markdown("**Koreksi Spasial Parallax Error**")
