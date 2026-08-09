@@ -184,10 +184,7 @@ if st.session_state.step == 'upload':
         st.subheader("📥 Input Citra Lapangan")
         up_file = st.file_uploader("Unggah foto (JPG/PNG):", type=['jpg', 'jpeg', 'png'])
         if up_file:
-            # BYPASS TOTAL: Kita ekstrak langsung wujud asli fotonya (raw_bytes).
-            # Kita TIDAK lagi menggunakan objek 'up_file' untuk st.image().
             raw_bytes = up_file.getvalue()
-            
             is_valid, msg = validate_underwater_image(raw_bytes)
             
             if not is_valid:
@@ -196,8 +193,14 @@ if st.session_state.step == 'upload':
             else:
                 st.success(f"✅ {msg}")
                 
-                # Render gambar langsung dari data mentah, dijamin 100% lolos TypeError
-                st.image(raw_bytes, use_column_width=True, caption="Citra Lolos Validasi Ekologi")
+                # --- FIX SUPER AMAN: Konversi bytes ke Matriks Piksel NumPy RGB ---
+                # Streamlit membaca Matriks NumPy (RGB) secara native tanpa peduli format file/MIME type
+                nparr = np.frombuffer(raw_bytes, np.uint8)
+                img_cv2 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                img_rgb = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
+                
+                # Menampilkan Matriks RGB
+                st.image(img_rgb, use_container_width=True, caption="Citra Lolos Validasi Ekologi")
                 
                 if st.button("🚀 EKSTRAKSI FITUR (GRAPHRAG)", type="primary", use_container_width=True):
                     st.session_state.enhanced_img_cache = enhance_underwater_image(raw_bytes)
@@ -208,12 +211,12 @@ if st.session_state.step == 'upload':
         st.subheader("🔬 Pra-Pemrosesan: De-Hazing Otomatis")
         if up_file:
             try:
-                # Gunakan raw_bytes juga untuk kolom kedua agar stabil
                 raw_bytes = up_file.getvalue()
                 is_valid, _ = validate_underwater_image(raw_bytes)
                 if is_valid:
                     enhanced_preview = enhance_underwater_image(raw_bytes)
-                    st.image(enhanced_preview, use_column_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
+                    # Ini sudah RGB Matriks dari awal, jadi 100% aman
+                    st.image(enhanced_preview, use_container_width=True, caption="Hasil Penjernihan Histogram (OpenCV)")
             except Exception as e: 
                 pass
         else:
@@ -278,7 +281,8 @@ elif st.session_state.step == 'detail':
     with workspace_col_left:
         st.subheader("📸 Citra Lapangan & Visual Target")
         if st.session_state.enhanced_img_cache is not None:
-            st.image(st.session_state.enhanced_img_cache, use_column_width=True, caption="Citra Sampel Lapangan (De-hazed)")
+            # Karena ini hasil OpenCV array (NumPy), ini 100% aman
+            st.image(st.session_state.enhanced_img_cache, use_container_width=True, caption="Citra Sampel Lapangan (De-hazed)")
         
         st.markdown("**Referensi Taksonomi Database:**")
         ref_img_html = render_local_image_large(spec_info["local_img"])
